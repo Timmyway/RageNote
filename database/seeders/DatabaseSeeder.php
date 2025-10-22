@@ -15,6 +15,8 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             TagSeeder::class,
+            Tekken8CharacterSeeder::class,
+            UserSeeder::class,
         ]);
     }
 }
