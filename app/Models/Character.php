@@ -8,8 +8,14 @@ class Character extends Model
 {
     protected $fillable = ['name', 'short_name', 'image', 'notes'];
 
-    public function moves()
+    public function getImageUrlAttribute(): ?string
     {
-        return $this->hasMany(Move::class);
+        if (!$this->image) return null;
+        return filter_var($this->image, FILTER_VALIDATE_URL) ? $this->image : asset('storage/' . $this->image);
+    }
+
+    public function videos()
+    {
+        return $this->hasMany(Video::class);
     }
 }
