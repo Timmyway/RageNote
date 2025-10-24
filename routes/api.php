@@ -16,6 +16,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/characters/{id}', [CharacterController::class, 'show']);
     Route::get('/tags', [TagController::class, 'index']);
 
+    Route::get('/characters/{id}/videos', [VideoController::class, 'byCharacter']);
     Route::get('videos', [VideoController::class, 'index']);
     Route::get('videos/{video}', [VideoController::class, 'show']);
 

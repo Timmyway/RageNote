@@ -1,10 +1,10 @@
 <script setup lang="ts">
+import CharacterList from '@/components/ragenote/notes/CharacterList.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { dashboard } from '@/routes';
+import { useRageNoteStore } from '@/stores/rageNoteStore';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/vue3';
-import CharacterList from '@/components/ragenote/notes/CharacterList.vue';
-import { useRageNoteStore } from '@/stores/rageNote';
+import { Head, router } from '@inertiajs/vue3';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -18,8 +18,9 @@ const rageNoteStore = useRageNoteStore();
 rageNoteStore.fetchCharacters();
 
 function onSelectCharacter(character: any) {
-  rageNoteStore.selectCharacter(character);
-  rageNoteStore.fetchVideos(character.id);
+    rageNoteStore.selectCharacter(character);
+    router.get(`/characters/${character.id}`)
+    // rageNoteStore.fetchVideos(character.id);
 }
 </script>
 

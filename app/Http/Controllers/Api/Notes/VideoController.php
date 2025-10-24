@@ -86,6 +86,12 @@ class VideoController extends Controller
         return response()->json($video);
     }
 
+    public function byCharacter($id)
+    {
+        $videos = Video::where('character_id', $id)->get();
+        return response()->json($videos);
+    }
+
     public function destroy(Video $video)
     {
         $this->service->delete($video);

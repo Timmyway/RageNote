@@ -24,3 +24,11 @@ declare module 'vue' {
         $headManager: ReturnType<typeof createHeadManager>;
     }
 }
+
+declare global {
+    interface Window {
+        axios: AxiosInstance;
+        apiUrl: string;
+        authUser: User | null;
+    }
+}
