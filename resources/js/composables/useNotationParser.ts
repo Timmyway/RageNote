@@ -15,7 +15,7 @@ const ATOMIC_MAP: Record<string, string> = {
     db: 'db.png',
     b: 'b.png',
     ub: 'ub.png',
-    n: 'neutral.png',
+    n: 'n.png',
 
     U: 'up_hold.png',
     UF: 'up_forward_hold.png',
@@ -66,29 +66,6 @@ const PROPERTY_MAP: Record<string, string> = {
     CH: 'ch.png',
 };
 
-// ✅ Longest-match direction tokenizer (fixes df / uf / db / ub)
-const DIR_KEYS = ['uf', 'df', 'db', 'ub', 'u', 'd', 'f', 'b'];
-function tokenizeDirections(str: string) {
-    const result: string[] = [];
-    let i = 0;
-    while (i < str.length) {
-        let match = null;
-        for (const key of DIR_KEYS) {
-            if (str.slice(i, i + key.length).toLowerCase() === key) {
-                match = str.slice(i, i + key.length);
-                i += key.length;
-                break;
-            }
-        }
-        if (!match) {
-            match = str[i];
-            i++;
-        }
-        result.push(match);
-    }
-    return result;
-}
-
 export function useNotationParser(input: Ref<string> | ComputedRef<string>) {
     const raw = input;
 
@@ -128,25 +105,22 @@ export function useNotationParser(input: Ref<string> | ComputedRef<string>) {
                 continue;
             }
 
-            // ✅ Direction Chains (with hold)
-            const dirChainMatch = part.match(/^([udfb]{1,})([UDFB]?)(?:\+(\d))?$/i);
+            // Handle direction chains + hold + optional button (ffF, df+3)
+            const dirChainMatch = part.match(
+                /^([udfb]{1,})([UDFB]?)(?:\+(\d))?$/i,
+            );
             if (dirChainMatch) {
                 const chain = dirChainMatch[1];
                 const hold = dirChainMatch[2];
                 const button = dirChainMatch[3];
 
-                const pieces = tokenizeDirections(chain);
-
-                for (let i = 0; i < pieces.length; i++) {
-                    let token = pieces[i];
-
-                    // last direction gets hold if uppercase
-                    if (i === pieces.length - 1 && hold) {
-                        token = token.toUpperCase();
+                for (let i = 0; i < chain.length; i++) {
+                    let c = chain[i];
+                    if (i === chain.length - 1 && hold) {
+                        c = hold; // last direction uses hold icon if uppercase
                     }
-
-                    const icon = ATOMIC_MAP[token] || ATOMIC_MAP[token.toUpperCase()];
-                    out.push({ type: 'input', value: token, icon });
+                    const icon = ATOMIC_MAP[c] || ATOMIC_MAP[c.toUpperCase()];
+                    out.push({ type: 'input', value: c, icon });
                 }
 
                 if (button) {
@@ -157,33 +131,68 @@ export function useNotationParser(input: Ref<string> | ComputedRef<string>) {
                 continue;
             }
 
-            // Direction + remainder
-            const dirPrefixMatch = part.match(/^([udfb]{1,2}|ws|wr|ssr|ssl)\+(.+)$/i);
+            const dirPrefixMatch = part.match(
+                /^([udfb]{1,2}|ws|wr|ssr|ssl)\+(.+)$/i,
+            );
             if (dirPrefixMatch) {
-                const dir = dirPrefixMatch[1].toLowerCase();
+                const dirRaw = dirPrefixMatch[1]; // original input, case-sensitive
                 const remainder = dirPrefixMatch[2];
 
-                const dirIcon = ATOMIC_MAP[dir] || SPECIAL_INPUT_MAP[dir];
-                out.push({ type: 'input', value: dir, icon: dirIcon });
+                // Use longest-match mapping
+                const DIR_KEYS = ['uf', 'df', 'db', 'ub', 'u', 'd', 'f', 'b'];
+                let dirToken =
+                    DIR_KEYS.find(
+                        (k) => k.toLowerCase() === dirRaw.toLowerCase(),
+                    ) || dirRaw;
 
+                // Hold icon only if user typed uppercase for standard directions
+                const isHold =
+                    ['U', 'D', 'F', 'B', 'UF', 'DF', 'DB', 'UB'].includes(
+                        dirRaw.toUpperCase(),
+                    ) && dirRaw === dirRaw.toUpperCase();
+                const dirIcon = isHold
+                    ? ATOMIC_MAP[dirToken.toUpperCase()]
+                    : ATOMIC_MAP[dirToken.toLowerCase()] ||
+                      SPECIAL_INPUT_MAP[dirToken.toLowerCase()];
+
+                out.push({ type: 'input', value: dirRaw, icon: dirIcon });
+
+                // Handle remainder (multi-button)
                 if (SPECIAL_INPUT_MAP[remainder]) {
-                    out.push({ type: 'input', value: remainder, icon: SPECIAL_INPUT_MAP[remainder] });
+                    out.push({
+                        type: 'input',
+                        value: remainder,
+                        icon: SPECIAL_INPUT_MAP[remainder],
+                    });
                 } else {
                     const pieces = remainder.split(/([,+])/g).filter(Boolean);
                     let i = 0;
                     while (i < pieces.length) {
-                        if (i + 2 < pieces.length && pieces[i + 1] === '+' &&
-                            /^\d$/.test(pieces[i]) && /^\d$/.test(pieces[i + 2])) {
+                        if (
+                            i + 2 < pieces.length &&
+                            pieces[i + 1] === '+' &&
+                            /^\d$/.test(pieces[i]) &&
+                            /^\d$/.test(pieces[i + 2])
+                        ) {
                             const candidate = `${pieces[i]}+${pieces[i + 2]}`;
                             if (SPECIAL_INPUT_MAP[candidate]) {
-                                out.push({ type: 'input', value: candidate, icon: SPECIAL_INPUT_MAP[candidate] });
+                                out.push({
+                                    type: 'input',
+                                    value: candidate,
+                                    icon: SPECIAL_INPUT_MAP[candidate],
+                                });
                                 i += 3;
                                 continue;
                             }
                         }
                         const p = pieces[i];
-                        const icon = ATOMIC_MAP[p] || ATOMIC_MAP[p.toUpperCase()];
-                        out.push({ type: icon ? 'input' : 'symbol', value: p, icon });
+                        const icon =
+                            ATOMIC_MAP[p] || ATOMIC_MAP[p.toUpperCase()];
+                        out.push({
+                            type: icon ? 'input' : 'symbol',
+                            value: p,
+                            icon,
+                        });
                         i++;
                     }
                 }
@@ -191,14 +200,17 @@ export function useNotationParser(input: Ref<string> | ComputedRef<string>) {
                 continue;
             }
 
-            // Motion + button (e.g f+hcf+2)
-            const dirMotionMatch = part.match(/^([udfb]{1,2})\+([a-z]+)?\+?(\d)?$/i);
+            // Direction + motion + button (f+hcf+2)
+            const dirMotionMatch = part.match(
+                /^([udfb]{1,2})\+([a-z]+)?\+?(\d)?$/i,
+            );
             if (dirMotionMatch) {
                 const dir = dirMotionMatch[1];
                 const motion = dirMotionMatch[2];
                 const button = dirMotionMatch[3];
 
-                const dirIcon = ATOMIC_MAP[dir] || ATOMIC_MAP[dir.toUpperCase()];
+                const dirIcon =
+                    ATOMIC_MAP[dir] || ATOMIC_MAP[dir.toUpperCase()];
                 out.push({
                     type: dirIcon ? 'input' : 'symbol',
                     value: dir,
@@ -221,7 +233,7 @@ export function useNotationParser(input: Ref<string> | ComputedRef<string>) {
                 continue;
             }
 
-            // Fallback
+            // fallback: atomic pieces
             const normalized = part
                 .replace(/([udfb]+)(\d)/gi, '$1+$2')
                 .replace(/(\d)(\d)/g, '$1,$2');

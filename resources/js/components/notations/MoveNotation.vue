@@ -9,6 +9,7 @@ const props = defineProps<Props>();
 
 // UX Controls
 const groupBg = ref('#333333');
+const panelBg = ref('#222222');
 type IconSizeType = 'tiny' | 'small' | 'medium' | 'large' | 'huge';
 const iconSize = ref<IconSizeType>('medium');
 
@@ -72,6 +73,10 @@ const renderingClass = computed(() =>
   <!-- Controls -->
   <div class="panel mb-4 flex items-center space-x-4">
     <label class="flex items-center space-x-2">
+      <span class="text-sm font-medium">Panel BG:</span>
+      <input type="color" v-model="panelBg" class="h-8 w-10 cursor-pointer rounded border"/>
+    </label>
+    <label class="flex items-center space-x-2">
       <span class="text-sm font-medium">Group BG:</span>
       <input type="color" v-model="groupBg" class="h-8 w-10 cursor-pointer rounded border"/>
     </label>
@@ -88,7 +93,7 @@ const renderingClass = computed(() =>
   </div>
 
   <!-- Notation display -->
-  <div class="notation-display mt-10 inline-flex flex-wrap items-center" :class="renderingClass">
+  <div class="notation-display mt-10 inline-flex flex-wrap items-center" :class="renderingClass" :style="{ backgroundColor: panelBg }">
     <template v-for="(group, gi) in groups" :key="props.notation + '-' + gi">
       <span
         :class="['mr-2 inline-flex items-center rounded-md px-2', getGroupClass(group)]"
@@ -121,8 +126,9 @@ const renderingClass = computed(() =>
 }
 
 .notation-display {
-    background-color: #111111;
     padding: 10px 15px;
+    box-shadow: rgba(0, 0, 0, 0.05) 0px 0px 0px 1px, rgb(209, 213, 219) 0px 0px 0px 1px inset;
+    border-radius: 2px;
 }
 .notation-render--pixelated {
   image-rendering: pixelated;
