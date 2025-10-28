@@ -25,6 +25,7 @@ const ATOMIC_MAP: Record<string, string> = {
     DB: 'down_back_hold.png',
     B: 'back_hold.png',
     UB: 'up_back_hold.png',
+    dash: 'dash.png',
 
     '1': '1.png',
     '2': '2.png',
@@ -59,11 +60,13 @@ const PROPERTY_MAP: Record<string, string> = {
     TND: 'tornado.jpg',
     WSP: 'wallsplat.jpg',
     WBR: 'wall_break.jpg',
-    FBR: 'floor_break.png',
+    FBR: 'floor_break.WebP',
     BBR: 'balcony_break.png',
     HB: 'heat_burst.jpg',
     HD: 'heat_dash.jpg',
     CH: 'ch.png',
+    STB: 'stb.WebP',
+    DVK: 'dvk.WebP',
 };
 
 export function useNotationParser(input: Ref<string> | ComputedRef<string>) {

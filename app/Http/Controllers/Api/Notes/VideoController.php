@@ -65,6 +65,7 @@ class VideoController extends Controller
             'video_file' => 'nullable|file|mimes:mp4,mov,webm|max:102400',
             'youtube_url' => 'nullable|url',
             'notes' => 'nullable|string',
+            'notation' => 'nullable|string',
             'tags' => 'nullable|array',
             'tags.*' => 'exists:tags,slug',
         ]);
@@ -74,7 +75,7 @@ class VideoController extends Controller
         }
 
         $data = $request->only([
-            'character_id', 'title', 'youtube_url', 'notes', 'tags'
+            'character_id', 'title', 'youtube_url', 'notes', 'tags', 'notation'
         ]);
 
         if ($request->hasFile('video_file')) {

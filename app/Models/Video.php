@@ -15,6 +15,7 @@ class Video extends Model
         'title',
         'video_path',
         'youtube_url',
+        'notation',
         'notes',
     ];
 
