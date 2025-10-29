@@ -16,16 +16,7 @@ class UpdateVideoRequest extends FormRequest
         return [
             'character_id' => 'sometimes|exists:characters,id',
             'title' => 'sometimes|string',
-            'video_file' => [
-                'nullable',
-                'string',
-                function ($attribute, $value, $fail) {
-                    $path = storage_path('app/public/' . $value);
-                    if (!file_exists($path)) {
-                        $fail('The uploaded video file could not be found.');
-                    }
-                },
-            ],
+            'video_file' => 'nullable|string',
             'video_path' => 'nullable|string',
             'youtube_url' => 'nullable|url',
             'notes' => 'nullable|string',

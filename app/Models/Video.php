@@ -34,15 +34,10 @@ class Video extends Model
     // Accessor for full video URL
     public function getVideoUrlAttribute(): ?string
     {
-        if ($this->youtube_url) {
-            return $this->youtube_url;
-        }
-
         if ($this->video_path) {
-            $url = config('app.url') . Storage::url($this->video_path);
-            return $url;
+            return config('app.url') . Storage::url($this->video_path);
         }
 
-        return null;
+        return null; // don't fallback to YouTube here
     }
 }

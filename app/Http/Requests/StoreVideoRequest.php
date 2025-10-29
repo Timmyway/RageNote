@@ -16,16 +16,7 @@ class StoreVideoRequest extends FormRequest
         return [
             'character_id' => 'required|exists:characters,id',
             'title' => 'required|string',
-            'video_file' => [
-                'nullable',
-                'string',
-                function ($attribute, $value, $fail) {
-                    $path = storage_path('app/videos/' . $value);
-                    if (!file_exists($path)) {
-                        $fail('The uploaded video file could not be found.');
-                    }
-                },
-            ],
+            'video_file' => 'nullable|string',
             'video_path' => 'nullable|string', // for chunk uploads
             'youtube_url' => 'nullable|url',
             'notes' => 'nullable|string',
@@ -39,7 +30,7 @@ class StoreVideoRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             if (
-                !$this->hasFile('video_file')
+                empty($this->video_file)
                 && empty($this->video_path)
                 && empty($this->youtube_url)
             ) {

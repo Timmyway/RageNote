@@ -19,10 +19,13 @@ import {
 } from '@/components/ui/dialog';
 
 import { Button } from '@/components/ui/button';
+import { ref } from 'vue';
 
 const store = useRageNoteStore();
 const { character } = usePage().props as any;
 const id = character.id;
+const addDialogOpen = ref(false);
+const editDialogOpen = ref(false);
 
 // Breadcrumbs
 const breadcrumbs: BreadcrumbItem[] = [
@@ -38,8 +41,10 @@ const onVideoSaved = (video: any, isEdit = false) => {
     if (isEdit) {
         const idx = store.videos.findIndex((v) => v.id === video.id);
         if (idx !== -1) store.videos[idx] = video;
+        editDialogOpen.value = false;
     } else {
         store.videos.push(video);
+        addDialogOpen.value = false;
     }
 };
 </script>
@@ -67,7 +72,7 @@ const onVideoSaved = (video: any, isEdit = false) => {
 
                 <div class="ml-auto">
                     <!-- Add Video Button + Dialog -->
-                    <Dialog>
+                    <Dialog v-model:open="addDialogOpen">
                         <DialogTrigger as-child>
                             <Button variant="default">➕ Add Video</Button>
                         </DialogTrigger>
@@ -112,7 +117,7 @@ const onVideoSaved = (video: any, isEdit = false) => {
 
                         <!-- Edit Button -->
                         <div class="absolute top-2 right-2">
-                            <Dialog>
+                            <Dialog v-model:open="editDialogOpen">
                                 <DialogTrigger as-child>
                                     <Button size="sm" variant="outline"
                                         >✏️</Button

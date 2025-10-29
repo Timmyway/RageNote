@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
 import MoveNotation from '@/components/notations/MoveNotation.vue';
-import { wrap } from 'module';
+import { computed, ref } from 'vue';
 
 interface Video {
     id: number;
@@ -21,10 +20,26 @@ const props = defineProps<{ video: Video }>();
 const isPlaying = ref(false);
 
 const embedUrl = computed(() => {
-    if (!props.video.youtube_url) return null;
-    const urlParts = props.video.youtube_url.split('v=');
-    const videoId = urlParts.length > 1 ? urlParts[1] : props.video.youtube_url;
-    return `https://www.youtube.com/embed/${videoId}`;
+    const url = props.video.youtube_url;
+    if (!url) return null;
+
+    let videoId: string | null = null;
+
+    try {
+        const parsedUrl = new URL(url);
+        if (parsedUrl.hostname.includes('youtu.be')) {
+            // short format: https://youtu.be/VIDEO_ID
+            videoId = parsedUrl.pathname.slice(1);
+        } else if (parsedUrl.searchParams.has('v')) {
+            // long format: https://www.youtube.com/watch?v=VIDEO_ID
+            videoId = parsedUrl.searchParams.get('v');
+        }
+    } catch {
+        // fallback if URL parsing fails
+        return null;
+    }
+
+    return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
 });
 
 function playVideo() {
@@ -38,7 +53,8 @@ function playVideo() {
     >
         <h3 class="p-2 font-semibold">{{ video.id }} | {{ video.title }}</h3>
 
-        <div class="flex flex-col h-full">
+        <div class="flex h-full flex-col">
+            {{ video }}
             <div
                 class="relative w-full cursor-pointer"
                 @click="playVideo"
@@ -71,7 +87,9 @@ function playVideo() {
                     allowfullscreen
                     class="h-full w-full"
                 ></iframe>
-                <p v-else class="p-2 text-gray-500">No video source available</p>
+                <p v-else class="p-2 text-gray-500">
+                    No video source available
+                </p>
             </div>
 
             <div>
@@ -81,13 +99,13 @@ function playVideo() {
                     :default-icon-size="'small'"
                 />
             </div>
-            <div class="border-2 border-gray-200 border-y-0">
-                <p class="px-3 py-2 text-sm">
-                    Notation: {{ video.notation }}
-                </p>
+            <div class="border-2 border-y-0 border-gray-200">
+                <p class="px-3 py-2 text-sm">Notation: {{ video.notation }}</p>
             </div>
             <div class="flex-1 border-2 border-gray-200 bg-blue-600">
-                <p class="px-3 py-2 text-sm max-h-32 overflow-auto">{{ video.notes }}</p>
+                <p class="max-h-32 overflow-auto px-3 py-2 text-sm">
+                    {{ video.notes }}
+                </p>
             </div>
 
             <div v-if="video.tags?.length" class="flex flex-wrap gap-1 p-2">
