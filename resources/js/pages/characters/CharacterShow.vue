@@ -19,7 +19,6 @@ import {
 } from '@/components/ui/dialog';
 
 import { Button } from '@/components/ui/button';
-import { ref } from 'vue';
 
 const store = useRageNoteStore();
 const { character } = usePage().props as any;
@@ -34,9 +33,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 // Initialize store
 store.selectedCharacter = character;
 store.fetchVideos(id);
-
-// Modal control for edit
-const editingVideo = ref<any | null>(null);
 
 const onVideoSaved = (video: any, isEdit = false) => {
     if (isEdit) {
@@ -113,7 +109,6 @@ const onVideoSaved = (video: any, isEdit = false) => {
                         class="relative"
                     >
                         <VideoPlayer :video="video" />
-                        <div class="max-w-xs wrap-break-word">{{ video }}</div>
 
                         <!-- Edit Button -->
                         <div class="absolute top-2 right-2">

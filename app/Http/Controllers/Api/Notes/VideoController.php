@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\Notes;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreVideoRequest;
+use App\Http\Requests\UpdateVideoRequest;
 use App\Services\VideoService;
 use App\Models\Video;
 use Illuminate\Http\Request;
@@ -23,30 +25,9 @@ class VideoController extends Controller
         return response()->json($videos);
     }
 
-    public function store(Request $request)
+    public function store(StoreVideoRequest $request)
     {
-        $request->validate([
-            'character_id' => 'required|exists:characters,id',
-            'title' => 'required|string',
-            'video_file' => 'nullable|file|mimes:mp4,mov,webm|max:102400', // 100MB
-            'youtube_url' => 'nullable|url',
-            'notes' => 'nullable|string',
-            'notation' => 'nullable|string|max:5000',
-            'tags' => 'nullable|array',
-            'tags.*' => 'exists:tags,slug',
-        ]);
-
-        if (!$request->hasFile('video_file') && empty($request->youtube_url)) {
-            return response()->json(['error' => 'You must provide a video file or a YouTube link.'], 422);
-        }
-
-        $data = $request->only([
-            'character_id', 'title', 'youtube_url', 'notes', 'notation', 'tags'
-        ]);
-
-        if ($request->hasFile('video_file')) {
-            $data['video_file'] = $request->file('video_file');
-        }
+        $data = $request->validated();
 
         $video = $this->service->create($data);
 
@@ -58,30 +39,9 @@ class VideoController extends Controller
         return response()->json($video->load(['tags', 'character']));
     }
 
-    public function update(Request $request, Video $video)
+    public function update(UpdateVideoRequest $request, Video $video)
     {
-        $request->validate([
-            'character_id' => 'sometimes|exists:characters,id',
-            'title' => 'sometimes|string',
-            'video_file' => 'nullable|file|mimes:mp4,mov,webm|max:102400',
-            'youtube_url' => 'nullable|url',
-            'notes' => 'nullable|string',
-            'notation' => 'nullable|string|max:5000',
-            'tags' => 'nullable|array',
-            'tags.*' => 'exists:tags,slug',
-        ]);
-
-        if (!$request->hasFile('video_file') && $request->filled('youtube_url') === false && empty($video->video_path)) {
-            return response()->json(['error' => 'You must provide a video file or a YouTube link.'], 422);
-        }
-
-        $data = $request->only([
-            'character_id', 'title', 'youtube_url', 'notes', 'tags', 'notation'
-        ]);
-
-        if ($request->hasFile('video_file')) {
-            $data['video_file'] = $request->file('video_file');
-        }
+        $data = $request->validated();
 
         $video = $this->service->update($video, $data);
 

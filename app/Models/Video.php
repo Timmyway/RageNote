@@ -39,7 +39,8 @@ class Video extends Model
         }
 
         if ($this->video_path) {
-            return config('app.url') . Storage::url($this->video_path);
+            $url = config('app.url') . Storage::url($this->video_path);
+            return $url;
         }
 
         return null;

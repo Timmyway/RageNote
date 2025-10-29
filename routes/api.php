@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Notes\VideoController;
 use App\Http\Controllers\Api\Notes\CharacterController;
 use App\Http\Controllers\Api\Notes\TagController;
+use App\Http\Controllers\Api\Videos\UploadController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -29,5 +30,8 @@ Route::prefix('v1')->group(function () {
         Route::delete('videos/{video}', [VideoController::class, 'destroy']);
 
         Route::middleware('auth:sanctum')->post('logout', [AuthController::class, 'logout']);
+
+        // Chunked upload route
+        Route::post('videos/upload-chunk', [UploadController::class, 'uploadChunk']);
     });
 });

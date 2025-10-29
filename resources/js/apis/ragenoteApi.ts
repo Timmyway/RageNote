@@ -1,5 +1,6 @@
 import { Api } from '@/apis/Api';
 import handleError from '@/apis/handleApiError';
+import { AxiosProgressEvent } from 'axios';
 
 export default {
     // 🔹 Fetch all characters
@@ -55,5 +56,20 @@ export default {
         } catch (error) {
             throw handleError(error);
         }
-    }
+    },
+
+    async uploadVideoChunk(
+        formData: FormData,
+        onUploadProgress?: (progressEvent: AxiosProgressEvent) => void,
+    ) {
+        try {
+            const response = await Api.post('/videos/upload-chunk', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+                onUploadProgress,
+            });
+            return response.data;
+        } catch (error) {
+            throw handleError(error);
+        }
+    },
 };
