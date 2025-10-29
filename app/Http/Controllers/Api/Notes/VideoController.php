@@ -25,6 +25,7 @@ class VideoController extends Controller
 
     public function store(Request $request)
     {
+        dd('test');
         $request->validate([
             'character_id' => 'required|exists:characters,id',
             'title' => 'required|string',

@@ -35,6 +35,7 @@ export default {
     // 🔹 Create video (multipart)
     async createVideo(formData: FormData) {
         try {
+            console.log('============> Create video');
             const response = await Api.post('/videos', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
