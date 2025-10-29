@@ -22,7 +22,7 @@ Route::prefix('v1')->group(function () {
 
     Route::post('login', [AuthController::class, 'login']);
 
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware('web')->group(function () {
         Route::post('videos', [VideoController::class, 'store']);
         Route::put('videos/{video}', [VideoController::class, 'update']);
         Route::patch('videos/{video}', [VideoController::class, 'update']);

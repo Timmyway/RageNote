@@ -25,13 +25,13 @@ class VideoController extends Controller
 
     public function store(Request $request)
     {
-        dd('test');
         $request->validate([
             'character_id' => 'required|exists:characters,id',
             'title' => 'required|string',
             'video_file' => 'nullable|file|mimes:mp4,mov,webm|max:102400', // 100MB
             'youtube_url' => 'nullable|url',
             'notes' => 'nullable|string',
+            'notation' => 'nullable|string|max:5000',
             'tags' => 'nullable|array',
             'tags.*' => 'exists:tags,slug',
         ]);
@@ -41,7 +41,7 @@ class VideoController extends Controller
         }
 
         $data = $request->only([
-            'character_id', 'title', 'youtube_url', 'notes', 'tags'
+            'character_id', 'title', 'youtube_url', 'notes', 'notation', 'tags'
         ]);
 
         if ($request->hasFile('video_file')) {
@@ -66,7 +66,7 @@ class VideoController extends Controller
             'video_file' => 'nullable|file|mimes:mp4,mov,webm|max:102400',
             'youtube_url' => 'nullable|url',
             'notes' => 'nullable|string',
-            'notation' => 'nullable|string',
+            'notation' => 'nullable|string|max:5000',
             'tags' => 'nullable|array',
             'tags.*' => 'exists:tags,slug',
         ]);

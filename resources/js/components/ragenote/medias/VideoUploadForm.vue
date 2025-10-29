@@ -1,106 +1,152 @@
 <script setup lang="ts">
 import ragenoteApi from '@/apis/ragenoteApi';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
-const props = defineProps({
-    characterId: {
-        type: Number,
-        required: true,
+interface Props {
+    characterId?: number;
+    video?: any; // existing video for edit
+    mode?: 'create' | 'edit';
+}
+
+const props = defineProps<Props>();
+const emit = defineEmits<{
+    (e: 'saved', video: any): void;
+}>();
+
+// Form fields
+const title = ref(props.video?.title || '');
+const youtubeUrl = ref(props.video?.youtube_url || '');
+const notes = ref(props.video?.notes || '');
+const notation = ref(props.video?.notation || '');
+const file = ref<File | null>(null);
+
+// Watch video prop for edits
+watch(
+    () => props.video,
+    (v) => {
+        title.value = v?.title || '';
+        youtubeUrl.value = v?.youtube_url || '';
+        notes.value = v?.notes || '';
+        notation.value = v?.notation || '';
+        file.value = null;
     },
-});
+);
 
-const title = ref('');
-const youtubeUrl = ref('');
-const notes = ref('');
-const videoFile = ref<File | null>(null);
-const isSubmitting = ref(false);
-const error = ref<string | null>(null);
-const success = ref<string | null>(null);
+const errors = ref<Record<string, string>>({});
+const processing = ref(false);
 
-const handleFileChange = (e: Event) => {
+const onFileChange = (e: Event) => {
     const target = e.target as HTMLInputElement;
-    if (target.files?.length) {
-        videoFile.value = target.files[0];
+    if (target.files && target.files[0]) {
+        file.value = target.files[0];
     }
 };
 
-const handleSubmit = async () => {
-    error.value = null;
-    success.value = null;
-
-    if (!videoFile.value && !youtubeUrl.value) {
-        error.value = 'Please provide either a video file or a YouTube URL.';
-        return;
-    }
+const submit = async () => {
+    processing.value = true;
+    errors.value = {};
 
     const formData = new FormData();
-    formData.append('character_id', props.characterId.toString());
     formData.append('title', title.value);
-    if (notes.value) formData.append('notes', notes.value);
+    formData.append('notes', notes.value);
+    formData.append('notation', notation.value);
     if (youtubeUrl.value) formData.append('youtube_url', youtubeUrl.value);
-    if (videoFile.value) formData.append('video_file', videoFile.value);
-
-    isSubmitting.value = true;
+    if (file.value) formData.append('video_file', file.value);
 
     try {
-        const data = await ragenoteApi.createVideo(formData);
-        success.value = `✅ Video "${data.title}" uploaded successfully!`;
-        title.value = '';
-        youtubeUrl.value = '';
-        notes.value = '';
-        videoFile.value = null;
+        let video;
+        if (props.mode === 'edit' && props.video) {
+            formData.append('_method', 'PUT'); // Laravel needs this
+            video = await ragenoteApi.updateVideo(props.video.id, formData);
+        } else {
+            formData.append('character_id', props.characterId!.toString());
+            video = await ragenoteApi.createVideo(formData);
+        }
+
+        emit('saved', video);
+
+        // Reset form only for create mode
+        if (props.mode !== 'edit') {
+            title.value = '';
+            youtubeUrl.value = '';
+            notes.value = '';
+            file.value = null;
+        }
     } catch (err: any) {
-        error.value = err.message || 'Upload failed.';
+        if (err.response?.data?.errors) errors.value = err.response.data.errors;
+        console.error(err);
     } finally {
-        isSubmitting.value = false;
+        processing.value = false;
     }
 };
 </script>
 
 <template>
-    <div
-        class="w-full max-w-lg rounded-2xl bg-gray-900 p-6 text-white shadow-lg"
-    >
-        <h2 class="mb-4 text-xl font-semibold">Upload Video</h2>
+    <form @submit.prevent="submit" class="space-y-4">
+        <div>
+            <label>Title</label>
+            <input v-model="title" class="w-full rounded border px-2 py-1" />
+            <p v-if="errors.title" class="text-sm text-red-500">
+                {{ errors.title }}
+            </p>
+        </div>
 
-        <div class="space-y-3">
-            <input
-                v-model="title"
-                type="text"
-                placeholder="Video title"
-                class="w-full rounded border border-gray-700 bg-gray-800 p-2"
-            />
-
+        <div>
+            <label>Notes</label>
             <textarea
+                id="notes"
+                name="notes"
                 v-model="notes"
-                placeholder="Notes (optional)"
-                class="w-full rounded border border-gray-700 bg-gray-800 p-2"
+                rows="4"
+                placeholder="Add tournament tips or extra info..."
+                class="w-full resize-y rounded border px-4 py-2 text-lg"
             ></textarea>
+            <p v-if="errors.notes" class="text-sm text-red-500">
+                {{ errors.notes }}
+            </p>
+        </div>
 
+        <div class="grid gap-2">
+            <Label for="notation">Notation</Label>
             <input
-                type="file"
-                accept="video/mp4,video/webm,video/quicktime"
-                @change="handleFileChange"
-                class="w-full text-sm text-gray-400"
+                id="notation"
+                name="notation"
+                v-model="notation"
+                placeholder="Enter combo notation (optional)"
+                class="w-full rounded border px-4 py-2 text-lg"
             />
+            <InputError :message="errors.notation" />
+        </div>
 
+        <div>
+            <label>YouTube URL</label>
             <input
                 v-model="youtubeUrl"
-                type="text"
-                placeholder="YouTube link (optional)"
-                class="w-full rounded border border-gray-700 bg-gray-800 p-2"
+                class="w-full rounded border px-2 py-1"
             />
-
-            <button
-                @click="handleSubmit"
-                :disabled="isSubmitting"
-                class="w-full rounded bg-blue-600 px-4 py-2 font-semibold transition hover:bg-blue-700"
-            >
-                {{ isSubmitting ? 'Uploading...' : 'Upload' }}
-            </button>
-
-            <p v-if="error" class="text-sm text-red-400">{{ error }}</p>
-            <p v-if="success" class="text-sm text-green-400">{{ success }}</p>
+            <p v-if="errors.youtube_url" class="text-sm text-red-500">
+                {{ errors.youtube_url }}
+            </p>
         </div>
-    </div>
+
+        <div>
+            <label>Video File</label>
+            <input
+                type="file"
+                @change="onFileChange"
+                class="w-full rounded border px-2 py-1"
+            />
+            <p class="text-sm text-gray-500">
+                Optional, replaces existing video if selected
+            </p>
+        </div>
+
+        <button
+            type="submit"
+            class="rounded bg-blue-600 px-4 py-2 text-white"
+            :disabled="processing"
+        >
+            {{ props.mode === 'edit' ? 'Update Video' : 'Upload Video' }}
+        </button>
+    </form>
 </template>
