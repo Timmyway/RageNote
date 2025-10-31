@@ -40,4 +40,13 @@ class Video extends Model
 
         return null; // don't fallback to YouTube here
     }
+
+    public function getThumbnailUrlAttribute(): ?string
+    {
+        if (!$this->thumbnail_path) {
+            return null;
+        }
+
+        return config('app.url') . Storage::url($this->thumbnail_path);
+    }
 }

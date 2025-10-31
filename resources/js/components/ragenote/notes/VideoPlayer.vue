@@ -54,14 +54,13 @@ function playVideo() {
         <h3 class="p-2 font-semibold">{{ video.id }} | {{ video.title }}</h3>
 
         <div class="flex h-full flex-col">
-            {{ video }}
             <div
                 class="relative w-full cursor-pointer"
                 @click="playVideo"
                 v-if="!isPlaying"
             >
                 <img
-                    :src="video.thumbnail || '/images/video-placeholder.jpg'"
+                    :src="video.thumbnail || '/images/video-placeholder.WebP'"
                     alt="thumbnail"
                     class="aspect-video w-full object-cover"
                 />

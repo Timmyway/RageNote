@@ -26,6 +26,7 @@ const { character } = usePage().props as any;
 const id = character.id;
 const addDialogOpen = ref(false);
 const editDialogOpen = ref(false);
+const selectedVideo = ref<any>(null);
 
 // Breadcrumbs
 const breadcrumbs: BreadcrumbItem[] = [
@@ -119,8 +120,14 @@ const onVideoSaved = (video: any, isEdit = false) => {
                         <div class="absolute top-2 right-2">
                             <Dialog v-model:open="editDialogOpen">
                                 <DialogTrigger as-child>
-                                    <Button size="sm" variant="outline"
-                                        >✏️</Button
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        @click="
+                                            selectedVideo = video;
+                                            editDialogOpen = true;
+                                        "
+                                    >✏️</Button
                                     >
                                 </DialogTrigger>
 
@@ -134,7 +141,7 @@ const onVideoSaved = (video: any, isEdit = false) => {
                                     </DialogHeader>
 
                                     <VideoUploadForm
-                                        :video="video"
+                                        :video="selectedVideo"
                                         mode="edit"
                                         @saved="
                                             (updatedVideo) =>
