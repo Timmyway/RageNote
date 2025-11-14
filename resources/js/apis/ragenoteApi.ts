@@ -24,9 +24,9 @@ export default {
     },
 
     // 🔹 Fetch videos for a character
-    async getVideosByCharacterId(id: number) {
+    async getVideosByCharacterId(id: number, page = 1) {
         try {
-            const response = await Api.get(`/characters/${id}/videos`);
+            const response = await Api.get(`/characters/${id}/videos?page=${page}`);
             return response.data;
         } catch (error) {
             throw handleError(error);

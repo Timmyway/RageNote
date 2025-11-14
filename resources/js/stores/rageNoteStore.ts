@@ -9,6 +9,13 @@ export const useRageNoteStore = defineStore('rageNote', () => {
     const videos = ref<any[]>([]);
     const loading = ref(false);
 
+    const videosMeta = ref({
+        current_page: 1,
+        last_page: 1,
+        per_page: 20,
+        total: 0,
+    });
+
     // Actions
     async function fetchCharacters() {
         loading.value = true;
@@ -24,10 +31,18 @@ export const useRageNoteStore = defineStore('rageNote', () => {
         videos.value = []; // reset videos when selecting new character
     }
 
-    async function fetchVideos(id: number) {
+    async function fetchVideos(id: number, page = 1) {
         loading.value = true;
         try {
-            videos.value = await ragenoteApi.getVideosByCharacterId(id);
+            const res = await ragenoteApi.getVideosByCharacterId(id, page);
+
+            videos.value = res.data; // paginated data
+            videosMeta.value = {
+                current_page: res.current_page,
+                last_page: res.last_page,
+                per_page: res.per_page,
+                total: res.total,
+            };
         } finally {
             loading.value = false;
         }
@@ -42,6 +57,7 @@ export const useRageNoteStore = defineStore('rageNote', () => {
         selectedCharacter,
         videos,
         loading,
+        videosMeta,
         fetchCharacters,
         selectCharacter,
         fetchCharacter,

@@ -91,7 +91,7 @@ function playVideo() {
                 </p>
             </div>
 
-            <div>
+            <div v-if="video.notation">
                 <MoveNotation
                     :notation="video.notation ?? ''"
                     :is-readonly="true"

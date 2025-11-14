@@ -50,7 +50,10 @@ class VideoController extends Controller
 
     public function byCharacter($id)
     {
-        $videos = Video::where('character_id', $id)->get();
+        $perPage = request()->get('per_page', 2);
+
+        $videos = $this->service->getByCharacter((int) $id, $perPage);
+
         return response()->json($videos);
     }
 

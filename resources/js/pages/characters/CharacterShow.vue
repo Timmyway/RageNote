@@ -6,6 +6,7 @@ import { dashboard } from '@/routes';
 import { useRageNoteStore } from '@/stores/rageNoteStore';
 import { type BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/vue3';
+import Pagination from '@/components/ui/tw/Pagination.vue';
 
 import {
     Dialog,
@@ -161,6 +162,13 @@ const onVideoSaved = (video: any, isEdit = false) => {
                         </div>
                     </div>
                 </div>
+                {{ store.videosMeta.total }} {{ store.videosMeta.per_page }}
+                <Pagination
+                    v-if="store.videosMeta.total > store.videosMeta.per_page"
+                    :current-page="store.videosMeta.current_page"
+                    :last-page="store.videosMeta.last_page"
+                    @change="(page) => store.fetchVideos(id, page)"
+                />
             </div>
 
             <p v-else class="mt-4 text-gray-400">

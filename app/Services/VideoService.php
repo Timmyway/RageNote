@@ -59,6 +59,12 @@ class VideoService
         return $safeName;
     }
 
+    public function getByCharacter(int $characterId, int $perPage = 2)
+    {
+        return Video::where('character_id', $characterId)
+            ->paginate($perPage);
+    }
+
     /**
      * Create a new video record.
      */
