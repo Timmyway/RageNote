@@ -4,6 +4,7 @@ import {
     useNotationParser,
 } from '@/composables/useNotationParser';
 import NotationGuide from '@/pages/notations/NotationGuide.vue';
+import html2canvas from 'html2canvas-pro';
 import { computed, ref } from 'vue';
 
 type IconSizeType = 'tiny' | 'small' | 'medium' | 'large' | 'huge';
@@ -18,8 +19,11 @@ const props = withDefaults(defineProps<Props>(), {
     defaultIconSize: 'medium',
 });
 
+const exportRef = ref<HTMLElement | null>(null);
+
 // UX Controls
 const groupBg = ref('#333333');
+const groupTextColor = ref('#FFFFFF');
 const panelBg = ref('#222222');
 const iconSize = ref<IconSizeType>(props.defaultIconSize!);
 
@@ -89,6 +93,28 @@ const pixelMode = ref(false);
 const renderingClass = computed(() =>
     pixelMode.value ? 'notation-render--pixelated' : '',
 );
+
+const exportAsImage = async () => {
+    if (!exportRef.value) return;
+
+    const el = exportRef.value;
+    const prevBoxShadow = el.style.boxShadow;
+
+    el.style.boxShadow = 'none';
+
+    const canvas = await html2canvas(el, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+    });
+
+    el.style.boxShadow = prevBoxShadow;
+
+    const link = document.createElement('a');
+    link.download = `notation-${Date.now()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+};
 </script>
 
 <template>
@@ -115,6 +141,14 @@ const renderingClass = computed(() =>
             />
         </label>
         <label class="flex items-center space-x-2">
+            <span class="text-sm font-medium">Group text:</span>
+            <input
+                type="color"
+                v-model="groupTextColor"
+                class="h-8 w-10 cursor-pointer rounded border"
+            />
+        </label>
+        <label class="flex items-center space-x-2">
             <span class="text-sm font-medium">Icon size:</span>
             <select
                 v-model="iconSize"
@@ -133,6 +167,14 @@ const renderingClass = computed(() =>
             <input type="checkbox" v-model="pixelMode" />
             Pixel mode
         </label>
+        <button
+            v-if="!isReadonly"
+            @click="exportAsImage"
+            class="rounded bg-black px-3 py-1 text-sm text-white hover:opacity-90"
+        >
+            Export image
+        </button>
+
         <div class="ml-auto">
             <NotationGuide />
         </div>
@@ -140,6 +182,7 @@ const renderingClass = computed(() =>
 
     <!-- Notation display -->
     <div
+        ref="exportRef"
         class="notation-display inline-flex flex-wrap items-center gap-2"
         :class="[renderingClass, isReadonly ? 'mt-1' : 'mt-10']"
         :style="{ backgroundColor: panelBg }"
@@ -157,6 +200,7 @@ const renderingClass = computed(() =>
                     getGroupClass(group) === 'notation-group--normal'
                         ? {
                               backgroundColor: groupBg,
+                              color: groupTextColor,
                               paddingTop: '1rem',
                               paddingBottom: '1rem',
                           }
@@ -193,9 +237,10 @@ const renderingClass = computed(() =>
 
         <div
             v-if="damage"
-            class="damage-display flex text-center items-center justify-end bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-300 bg-clip-text text-xl font-extrabold tracking-wide text-transparent drop-shadow-[0_0_6px_rgba(255,200,0,0.8)]"
+            data-html2canvas-ignore
+            class="damage-display flex items-center justify-end bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-300 bg-clip-text text-center text-xl font-extrabold tracking-wide text-transparent drop-shadow-[0_0_6px_rgba(255,200,0,0.8)]"
         >
-            {{ damage }} <br>DMG
+            {{ damage }} <br />DMG
         </div>
     </div>
 </template>
@@ -247,6 +292,6 @@ const renderingClass = computed(() =>
 }
 
 .damage-display {
-    font-family: "Audiowide", sans-serif;
+    font-family: 'Audiowide', sans-serif;
 }
 </style>
